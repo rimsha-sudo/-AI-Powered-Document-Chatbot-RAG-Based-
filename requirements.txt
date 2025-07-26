@@ -1,0 +1,9 @@
+streamlit
+langchain
+langchain-community
+langchain-text-splitters
+transformers
+sentence-transformers
+PyPDF2
+python-docx
+docx2txt
