@@ -1,12 +1,14 @@
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_text_splitters import CharacterTextSplitter
+from langchain.vectorstores import FAISS
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.docstore.document import Document
 
-def split_documents(documents):
-    splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    return splitter.create_documents(documents)
+import os
 
-def create_faiss_vectorstore(docs):
-    embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    return FAISS.from_documents(documents=docs, embedding=embedding)
+def create_vector_store(docs, index_path="faiss_index"):
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
+    if os.path.exists(index_path):
+        return FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
+    vectorstore = FAISS.from_documents(docs, embeddings)
+    vectorstore.save_local(index_path)
+    return vectorstore

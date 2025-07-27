@@ -1,25 +1,13 @@
+from langchain.document_loaders import PyPDFLoader, TextLoader
 import os
-import docx2txt
-import PyPDF2
 
-def read_file(file_path):
-    ext = os.path.splitext(file_path)[-1].lower()
-
-    if ext == ".txt":
-        with open(file_path, "r", encoding="utf-8") as file:
-            return file.read()
-
-    elif ext == ".pdf":
-        pdf = PyPDF2.PdfReader(file_path)
-        text = ""
-        for page in pdf.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text
-        return text
-
-    elif ext == ".docx":
-        return docx2txt.process(file_path)
-
-    else:
-        raise ValueError("Unsupported file type Upload a .txt, .pdf, or .docx file.")
+def read_files_from_folder(folder_path):
+    docs = []
+    for file in os.listdir(folder_path):
+        if file.endswith(".pdf"):
+            loader = PyPDFLoader(os.path.join(folder_path, file))
+            docs.extend(loader.load())
+        elif file.endswith(".txt"):
+            loader = TextLoader(os.path.join(folder_path, file))
+            docs.extend(loader.load())
+    return docs

@@ -1,34 +1,20 @@
 import streamlit as st
-from utility.filehandler import read_file
-from utility.ragpipeline import create_chunks, create_vectorstore, build_rag_qa
-import os
+from utility.filehandler import read_files_from_folder
+from utility.vector_store import create_vector_store
+from utility.ragpipeline import build_rag_qa
+from dotenv import load_dotenv
+load_dotenv()
 
-st.set_page_config(page_title="RAG Chatbot", layout="centered")
-st.title("Document CHATBOT")
+st.title("Doc RAG Chatbot")
 
-uploaded_file = st.file_uploader("Upload a document", type=["pdf", "docx", "txt"])
+folder_path = "data"
+docs = read_files_from_folder(folder_path)
+vectorstore = create_vector_store(docs)
+qa_chain = build_rag_qa(vectorstore)
 
-if uploaded_file:
-    os.makedirs("temp", exist_ok=True)
-    file_path = f"temp/{uploaded_file.name}"
-    with open(file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    try:
-        text = read_file(file_path)
-        st.success("File successfully read.")
+query = st.text_input("Ask a question about your documents:")
 
-        docs = create_chunks(text)
-        vectorstore = create_vectorstore(docs)
-        qa_chain = build_rag_qa(vectorstore)
-
-        st.session_state.qa_chain = qa_chain
-    except Exception as e:
-        st.error(f"Error: {e}")
-
-if "qa_chain" in st.session_state:
-    query = st.text_input("Ask a question about the document:")
-
-    if query:
-        with st.spinner("Generating answer"):
-            response = st.session_state.qa_chain.run(query)
-            st.write("Answer:", response)
+if query:
+    with st.spinner("I am thinking give me time thanks"):
+        response = qa_chain.run(query)
+        st.success(response)
