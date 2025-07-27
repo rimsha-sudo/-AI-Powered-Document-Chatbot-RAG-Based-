@@ -1,20 +1,34 @@
-import streamlit as st
-from utility.filehandler import read_files_from_folder
-from utility.vector_store import create_vector_store
-from utility.ragpipeline import build_rag_qa
+import os
 from dotenv import load_dotenv
+import streamlit as st
+
+from langchain.document_loaders import PyPDFLoader
+from utility.ragpipeline import build_rag_qa
+from utility.vector_store import create_vector_store
+
 load_dotenv()
 
-st.title("Doc RAG Chatbot")
+# App UI
+st.title("RAG Chatbot")
+uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
-folder_path = "data"
-docs = read_files_from_folder(folder_path)
-vectorstore = create_vector_store(docs)
-qa_chain = build_rag_qa(vectorstore)
+if uploaded_file is not None:
+    with open("temp.pdf", "wb") as f:
+        f.write(uploaded_file.read())
 
-query = st.text_input("Ask a question about your documents:")
+    # Load and split document
+    loader = PyPDFLoader("temp.pdf")
+    pages = loader.load()
 
-if query:
-    with st.spinner("I am thinking give me time thanks"):
-        response = qa_chain.run(query)
-        st.success(response)
+    # Created vectorstore
+    vectorstore = create_vector_store(pages)
+
+    # NOW Build QA chain
+    qa_chain = build_rag_qa(vectorstore)
+
+    # User input
+    user_query = st.text_input("Ask a question about the document:")
+
+    if user_query:
+        response = qa_chain.run(user_query)
+        st.write(" Answer:", response)

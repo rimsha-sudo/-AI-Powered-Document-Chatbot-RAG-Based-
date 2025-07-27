@@ -1,12 +1,15 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
+from langchain_huggingface import HuggingFaceEndpoint
 from langchain.chains import RetrievalQA
-from langchain_huggingface import HuggingFaceEndpoint  
 
 def build_rag_qa(vectorstore):
     llm = HuggingFaceEndpoint(
         repo_id="google/flan-t5-base",
         task="text2text-generation",
-        huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"), 
+        huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
         model_kwargs={"temperature": 0.0, "max_length": 512}
     )
 
